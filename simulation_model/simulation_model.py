@@ -1,5 +1,5 @@
 from __future__ import print_function, division, unicode_literals
-from future.builtins import object, range
+# from future.builtins import object, range
 import numpy as np
 import mne
 import os
@@ -67,6 +67,7 @@ class SimulationModel(object):
             print('Initializing with MNE sample subject data instead...')
             self.subjects_dir = subjects_dir
             self.__init_with_mne_sample_data()
+            print("****"*20,)
         else:
             self.data_path = data_path
             self.subjects_dir = subjects_dir
@@ -77,6 +78,7 @@ class SimulationModel(object):
             self.trans_path = trans_path
             self.src_path = src_path
             self.raw_empty_room_path = raw_empty_room_path
+
 
         if not spacing or re.compile('([i-o])\w{2}\d').match(spacing) is None:
             raise ValueError("Incorrect spacing geometry. "
@@ -147,13 +149,17 @@ class SimulationModel(object):
         src_path = join(self.data_path, 'subjects', 'sample', 'bem', src_file)
         if not os.path.isfile(src_path):
             print("Source space file not found, creating new source space file...")
-            mne.setup_source_space(str('sample'), spacing=self.spacing)
+            src = mne.setup_source_space(str('sample'), spacing=self.spacing)
+            # write source spaces
+            mne.write_source_spaces(src_path,src)
 
         self.src_path = src_path
         # self.trans_path = None
         self.trans_path = join(self.data_path, 'MEG', 'sample', 'sample_audvis_raw-trans.fif')
         self.cov_path = join(self.data_path, 'MEG', 'sample', 'sample_audvis-cov.fif')
         self.raw_empty_room_path = join(self.data_path, 'MEG', 'sample', 'ernoise_raw.fif')
+
+
 
     def save_simulated_data(self):
         n_data = 3  # Create 3 files: one for training, one for validating and one for testing
@@ -419,3 +425,4 @@ class SimulationModel(object):
         self.sim_stc = sim_stc
         self.cov = mne.compute_raw_covariance(self.sim_data, reject=self.reject, n_jobs=CPU_THREADS)
         return self.sim_data, self.sim_stc
+
